@@ -67,6 +67,7 @@
 
 /* Include firmware version struct definition. */
 #include "ota_appversion32.h"
+#include "projdefs.h"
 
 
 /**
@@ -837,8 +838,6 @@ static OtaErr_t requestJobHandler( const OtaEventData_t * pEventData )
     OtaOsStatus_t osErr = OtaOsSuccess;
     OtaEventMsg_t eventMsg = { 0 };
 
-    ( void ) pEventData;
-
     /*
      * Check if any pending jobs are available from job service.
      */
@@ -893,6 +892,12 @@ static OtaErr_t requestJobHandler( const OtaEventData_t * pEventData )
 
         /* Reset the request momentum. */
         otaAgent.requestMomentum = 0;
+    }
+
+    /* Application callback for event processed - release buffer if present */
+    if( pEventData != NULL )
+    {
+        callOtaCallback( OtaJobEventProcessed, ( const void * ) pEventData );
     }
 
     return retVal;
@@ -1369,8 +1374,7 @@ static OtaErr_t resumeHandler( const OtaEventData_t * pEventData )
 static OtaErr_t jobNotificationHandler( const OtaEventData_t * pEventData )
 {
     OtaEventMsg_t eventMsg = { 0 };
-
-    ( void ) pEventData;
+    OtaErr_t err = OtaErrNone;
 
     /* Stop the request timer. */
     ( void ) otaAgent.pOtaInterface->os.timer.stop( OtaRequestTimer );
@@ -1387,7 +1391,12 @@ static OtaErr_t jobNotificationHandler( const OtaEventData_t * pEventData )
      */
     eventMsg.eventId = OtaAgentEventRequestJobDocument;
 
-    return ( OTA_SignalEvent( &eventMsg ) == true ) ? OtaErrNone : OtaErrSignalEventFailed;
+    err = ( OTA_SignalEvent( &eventMsg ) == true ) ? OtaErrNone : OtaErrSignalEventFailed;
+
+    /* Application callback for event processed - release buffer */
+    callOtaCallback( OtaJobEventProcessed, ( const void * ) pEventData );
+
+    return err;
 }
 
 static void freeFileContextMem( OtaFileContext_t * const pFileContext )
@@ -2554,7 +2563,10 @@ static IngestResult_t processDataBlock( OtaFileContext_t * pFileContext,
                                                                         ( uBlockIndex * OTA_FILE_BLOCK_SIZE ),
                                                                         pPayload,
                                                                         uBlockSize );
-        assert( ( OTA_FILE_BLOCK_SIZE == uBlockSize ) || ( pFileContext->blocksRemaining == 1 ) );
+        /* NOTE: blocks do NOT come in monotonically increasing order, therefore cannot use the following commented out assertion for block size: */
+        /* assert( ( OTA_FILE_BLOCK_SIZE == uBlockSize ) || ( pFileContext->blocksRemaining == 1 ) ); */
+        const uint32_t lastBlockIndex = (pFileContext->fileSize + (OTA_FILE_BLOCK_SIZE - 1)) / OTA_FILE_BLOCK_SIZE - 1;
+        assert( ( OTA_FILE_BLOCK_SIZE == uBlockSize ) || ( uBlockIndex == lastBlockIndex ) );
 
         if( ( iBytesWritten > 0 ) &&
             ( ( uint32_t ) iBytesWritten == uBlockSize ) )
@@ -2826,6 +2838,13 @@ static void handleUnexpectedEvents( const OtaEventMsg_t * pEventMsg )
     /* Perform any cleanup operations required for specific unhandled events.*/
     switch( pEventMsg->eventId )
     {
+        case OtaAgentEventRequestJobDocument:
+
+            /* Let the application know to release buffer.*/
+            callOtaCallback( OtaJobEventProcessed, ( const void * ) pEventMsg->pEventData );
+
+            break;
+
         case OtaAgentEventReceivedJobDocument:
 
             /* Let the application know to release buffer.*/
@@ -2876,6 +2895,15 @@ static void executeHandler( uint32_t index,
         LogDebug( ( "Failed to execute state transition handler: "
                     "Handler returned error: OtaErr_t=%s",
                     OTA_Err_strerror( err ) ) );
+
+        /* For data-carrying events, ensure buffer is released even on handler failure */
+        if( ( pEventMsg->eventId == OtaAgentEventRequestJobDocument ) ||
+            ( pEventMsg->eventId == OtaAgentEventReceivedJobDocument ) ||
+            ( pEventMsg->eventId == OtaAgentEventReceivedFileBlock ) )
+        {
+            /* Let the application know to release buffer */
+            callOtaCallback( OtaJobEventProcessed, ( const void * ) pEventMsg->pEventData );
+        }
     }
 
     LogInfo( ( "Current State=[%s]"
@@ -3260,6 +3288,13 @@ OtaState_t OTA_Shutdown( uint32_t ticksToWait,
              */
             while( ( ticks > 0U ) && ( otaAgent.state != OtaAgentStateStopped ) ) /* LCOV_EXCL_BR_LINE */
             {
+                // NOTE: This technique is generally terrible because there is potential for time to slide [take longer
+                // to timeout than requested], much better to take a starting timestamp and look for elapse of
+                // ticksToWait while sleeping for a short interval in between checks
+                vTaskDelay(1);  // Added by BinSentry (Michael Vermeer), what an egregious error to not actually delay
+                                // before decrementing tick count, this results in no timeout whatsoever which results
+                                // in always returning immediately (guaranteed to not be shutdown if unsubscribeFlag is
+                                // not 0)
                 ticks--;
             }
         }
