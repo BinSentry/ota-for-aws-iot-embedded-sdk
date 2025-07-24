@@ -3451,6 +3451,13 @@ OtaState_t OTA_Shutdown( uint32_t ticksToWait,
              */
             while( ( ticks > 0U ) && ( otaAgent.state != OtaAgentStateStopped ) ) /* LCOV_EXCL_BR_LINE */
             {
+                // NOTE: This technique is generally terrible because there is potential for time to slide [take longer
+                // to timeout than requested], much better to take a starting timestamp and look for elapse of
+                // ticksToWait while sleeping for a short interval in between checks
+                vTaskDelay(1);  // Added by BinSentry (Michael Vermeer), what an egregious error to not actually delay
+                                // before decrementing tick count, this results in no timeout whatsoever which results
+                                // in always returning immediately (guaranteed to not be shutdown if unsubscribeFlag is
+                                // not 0)
                 ticks--;
             }
         }
