@@ -3454,12 +3454,15 @@ OtaState_t OTA_Shutdown( uint32_t ticksToWait,
                 /* NOTE: This technique is generally terrible because there is potential for time to slide [take longer
                  * to timeout than requested], much better to take a starting timestamp and look for elapse of
                  * ticksToWait while sleeping for a short interval in between checks */
+                ticks--;
                 /* NOTE: Added by BinSentry (Michael Vermeer), what an egregious error to not actually delay
                  * before decrementing tick count, this results in no timeout whatsoever which results
                  * in always returning immediately (guaranteed to not be shutdown if unsubscribeFlag is
                  * not 0) */
-                otaAgent.pOtaInterface->os.delay.delay(1);
-                ticks--;
+                if (otaAgent.pOtaInterface->os.delay.delay != NULL)
+                {
+                    otaAgent.pOtaInterface->os.delay.delay(1);
+                }
             }
         }
     }
