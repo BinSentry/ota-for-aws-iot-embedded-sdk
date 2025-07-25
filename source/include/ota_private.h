@@ -422,6 +422,10 @@ typedef struct OtaEventData
     uint8_t data[ OTA_DATA_BLOCK_SIZE ]; /*!< Buffer for storing event information. */
     uint32_t dataLength;                 /*!< Total space required for the event. */
     bool bufferUsed;                     /*!< Flag set when buffer is used otherwise cleared. */
+#ifdef OTA_EVENT_BUFFER_DEBUG
+    OtaEvent_t event;
+    TickType_t creationTimestamp_ticks;
+#endif
 } OtaEventData_t;
 
 /**

@@ -32,6 +32,7 @@
 #include "FreeRTOS.h"
 #include "timers.h"
 #include "queue.h"
+#include "task.h"
 
 /* OTA OS POSIX Interface Includes.*/
 #include "ota_os_freertos.h"
@@ -357,4 +358,9 @@ void * Malloc_FreeRTOS( size_t size )
 void Free_FreeRTOS( void * ptr )
 {
     vPortFree( ptr );
+}
+
+void Delay_FreeRTOS( uint32_t delay_ms )
+{
+    vTaskDelay( pdMS_TO_TICKS( delay_ms ) );
 }
