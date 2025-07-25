@@ -257,6 +257,17 @@ typedef void * ( * OtaMalloc_t ) ( size_t size );
 typedef void ( * OtaFree_t ) ( void * ptr );
 
 /**
+ * @brief Delay task for specified milliseconds.
+ *
+ * This function sleeps the task for the specified milliseconds.
+ *
+ * @param[delay_ms]    Number of milliseconds to delay the task.
+ *
+ * @return             None.
+ */
+typedef void ( * OtaDelay_t ) ( uint32_t delay_ms );
+
+/**
  * @ingroup ota_struct_types
  * OTA Event Interface structure.
  */
@@ -302,6 +313,15 @@ typedef struct OtaMallocInterface
 
 /**
  * @ingroup ota_struct_types
+ * @brief OTA task delay interface.
+ */
+typedef struct OtaDelayInterface
+{
+    OtaDelay_t delay; /*!< @brief OTA task delay interface. */
+} OtaDelayInterface_t;
+
+/**
+ * @ingroup ota_struct_types
  * @brief  OTA OS Interface.
  */
 typedef struct OtaOSInterface
@@ -309,6 +329,7 @@ typedef struct OtaOSInterface
     OtaEventInterface_t event; /*!< @brief OTA Event interface. */
     OtaTimerInterface_t timer; /*!< @brief OTA Timer interface. */
     OtaMallocInterface_t mem;  /*!< @brief OTA memory interface. */
+    OtaDelayInterface_t delay; /*!< @brief OTA delay interface. */
 } OtaOSInterface_t;
 
 /* *INDENT-OFF* */

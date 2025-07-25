@@ -165,4 +165,16 @@ void * Malloc_FreeRTOS( size_t size );
 
 void Free_FreeRTOS( void * ptr );
 
+/**
+ * @brief Delay task.
+ *
+ * This function delays the task by the specified milliseconds.
+ *
+ * @param[delay_ms]    Number of milliseconds to delay.
+ *
+ * @return             None.
+ */
+
+void Delay_FreeRTOS( uint32_t delay_ms );
+
 #endif /* ifndef _OTA_OS_FREERTOS_H_ */
