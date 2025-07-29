@@ -71,6 +71,8 @@
 /* Include firmware version struct definition. */
 #include "ota_appversion32.h"
 
+#include <inttypes.h>
+
 
 /**
  * @brief Offset helper.
@@ -1990,16 +1992,20 @@ static OtaErr_t validateUpdateVersion( const OtaFileContext_t * pFileContext )
              * someone messed up and sent firmware with the same version. In either case,
              * this is a failure of the OTA update so reject the job.
              */
-            LogWarn( ( "Application version of the new image is identical to the current image: "
-                       "New images are expected to have a higher version number: " ) );
+            LogWarn( ( "Application version of the new image (v%"PRIu8".%"PRIu8".%"PRIu16") is identical to the current image: ",
+                        appFirmwareVersion.u.x.major, appFirmwareVersion.u.x.minor, appFirmwareVersion.u.x.build ) );
+            LogWarn( ( "New images are expected to have a higher version number. " ) );
 
             err = OtaErrSameFirmwareVersion;
         }
         /* Check if update version received is older than current version.*/
         else if( pFileContext->updaterVersion > appFirmwareVersion.u.unsignedVersion32 )
         {
-            LogWarn( ( "Application version of the new image is lower than the current image: "
-                       "New images are expected to have a higher version number." ) );
+            previousVersion.u.unsignedVersion32 = pFileContext->updaterVersion;
+            LogWarn( ( "Application version of the new image (v%"PRIu8".%"PRIu8".%"PRIu16") is lower than the current image (v%"PRIu8".%"PRIu8".%"PRIu16"): ",
+                        appFirmwareVersion.u.x.major, appFirmwareVersion.u.x.minor, appFirmwareVersion.u.x.build,
+                        previousVersion.u.x.major, previousVersion.u.x.minor, previousVersion.u.x.build ) );
+            LogWarn( ( "New images are expected to have a higher version number." ) );
             err = OtaErrDowngradeNotAllowed;
         }
 
@@ -2474,7 +2480,7 @@ static OtaErr_t getFileContextFromJob( const char * pRawMsg,
     if( parseErr == DocParseErrEmptyJobDoc )
     {
         /* Return an error type here for the empty job doc. This 'error' be handled by the caller */
-        LogInfo( ( "Emtpy job document found" ) );
+        LogInfo( ( "Empty job document found" ) );
         err = OtaErrEmptyJobDocument;
     }
 
