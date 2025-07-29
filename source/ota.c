@@ -2015,8 +2015,8 @@ static OtaErr_t validateUpdateVersion( const OtaFileContext_t * pFileContext )
         {
             previousVersion.u.unsignedVersion32 = pFileContext->updaterVersion;
             LogInfo( ( "New image has a higher version number than the current image: "
-                       "New image version=%u.%u.%u"
-                       ", Previous image version=%u.%u.%u",
+                       "New = v%u.%u.%u"
+                       ", Previous = v%u.%u.%u",
                        ( unsigned ) appFirmwareVersion.u.x.major, ( unsigned ) appFirmwareVersion.u.x.minor, ( unsigned ) appFirmwareVersion.u.x.build,
                        ( unsigned ) previousVersion.u.x.major, ( unsigned ) previousVersion.u.x.minor, ( unsigned ) previousVersion.u.x.build ) );
         }
