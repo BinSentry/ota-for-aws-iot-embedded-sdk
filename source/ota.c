@@ -2875,7 +2875,7 @@ static IngestResult_t ingestDataBlock( OtaFileContext_t * pFileContext,
 
     if( eIngestResult == IngestResultAccepted_Continue )
     {
-        LogDebug( ( "Ingested received block %u",
+        LogInfo( ( "Ingested received block %u",
                     ( unsigned ) uBlockIndex ) );
 
         /* Print progress every 32 blocks received */
@@ -2987,7 +2987,7 @@ static void executeHandler( uint32_t index,
 {
     OtaErr_t err = OtaErrNone;
 
-    LogWarn( ( "Index: %u. OTA event id: %i", index, ( int ) pEventMsg->eventId ) );
+    LogDebug( ( "Index: %u. OTA event id: %i", index, ( int ) pEventMsg->eventId ) );
 
     assert( otaTransitionTable[ index ].handler != NULL );
 
