@@ -217,6 +217,19 @@
 #endif
 
 /**
+ * @brief The number of events the OTA event queue can hold.
+ *
+ * @note This configurations parameter sets the number of events the
+ * OTA agent event queue can hold.
+ *
+ * <b>Possible values:</b> Any unsigned 32 integer. <br>
+ * <b>Default value:</b> '20'
+ */
+#ifndef otaconfig_OTA_EVENT_QUEUE_LENGTH
+#define otaconfig_OTA_EVENT_QUEUE_LENGTH    20U
+#endif
+
+/**
  * @brief Data type to represent a file.
  *
  * It is used to represent a file received via OTA. The file is declared as

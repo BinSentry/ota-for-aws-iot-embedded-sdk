@@ -42,7 +42,7 @@
 #include "ota_private.h"
 
 /* OTA Event queue attributes.*/
-#define MAX_MESSAGES    20
+#define MAX_MESSAGES    ( otaconfig_OTA_EVENT_QUEUE_LENGTH )
 #define MAX_MSG_SIZE    sizeof( OtaEventMsg_t )
 
 /* Array containing pointer to the OTA event structures used to send events to the OTA task. */
