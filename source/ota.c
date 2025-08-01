@@ -2595,7 +2595,7 @@ static bool validateDataBlock( const OtaFileContext_t * pFileContext,
         ( ( blockIndex == lastBlock ) && ( blockSize == ( pFileContext->fileSize - ( lastBlock * OTA_FILE_BLOCK_SIZE ) ) ) ) )
     {
         ret = true;
-        LogDebug( ( "Received valid file block: Block index=%u, Size=%u",
+        LogInfo( ( "Received valid file block: Block index=%u, Size=%u",
                     ( unsigned ) blockIndex, ( unsigned ) blockSize ) );
     }
 
